@@ -12,6 +12,8 @@ _ReSharper.Caches/
 .vs/
 *.user
 *.suo
+.env
+.env.*
 
 .DS_Store
 Thumbs.db
