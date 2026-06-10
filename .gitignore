@@ -1,0 +1,17 @@
+bin/
+obj/
+
+packages/
+
+.idea/
+*.iml
+*.sln.iml
+*.DotSettings.user
+_ReSharper.Caches/
+
+.vs/
+*.user
+*.suo
+
+.DS_Store
+Thumbs.db
