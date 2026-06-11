@@ -4,13 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BadmintonCourtBooking.Data;
 
-public sealed class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : IdentityDbContext<ApplicationUser>(options)
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
-    {
-    }
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

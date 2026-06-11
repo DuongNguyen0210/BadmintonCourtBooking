@@ -1,5 +1,6 @@
 using BadmintonCourtBooking.Dtos;
 using BadmintonCourtBooking.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,15 +8,8 @@ namespace BadmintonCourtBooking.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public sealed class AuthController : ControllerBase
+public sealed class AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager) : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public AuthController(UserManager<ApplicationUser> userManager)
-    {
-        _userManager = userManager;
-    }
-
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
     {
@@ -27,25 +21,53 @@ public sealed class AuthController : ControllerBase
             FullName = request.FullName.Trim()
         };
 
-        var result = await _userManager.CreateAsync(user, request.Password);
+        var result = await userManager.CreateAsync(user, request.Password);
+
+        if (result.Succeeded)
+            return Ok(new AuthResponse(true, "Registration successful.", ToUserResponse(user)));
+        var message = string.Join(" ", result.Errors.Select(error => error.Description));
+        return BadRequest(new AuthResponse(false, message, null));
+
+    }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
+    {
+        var user = await userManager.FindByEmailAsync(request.Email.Trim());
+
+        if (user is null)
+            return Unauthorized(new AuthResponse(false, "Invalid email or password.", null));
+
+        var result = await signInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, lockoutOnFailure: false);
 
         if (!result.Succeeded)
-        {
-            var message = string.Join(" ", result.Errors.Select(error => error.Description));
-            return BadRequest(new AuthResponse(false, message, null));
-        }
+            return Unauthorized(new AuthResponse(false, "Invalid email or password.", null));
 
-        return Ok(new AuthResponse(
-            true,
-            "Registration successful.",
-            ToUserResponse(user)));
+        return Ok(new AuthResponse(true, "Login successful.", ToUserResponse(user)));
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<ActionResult<AuthResponse>> Logout()
+    {
+        await signInManager.SignOutAsync();
+        return Ok(new AuthResponse(true, "Logout successful.", null));
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<UserResponse>> Me()
+    {
+        var user = await userManager.GetUserAsync(User);
+
+        if (user is null)
+            return Unauthorized();
+
+        return Ok(ToUserResponse(user));
     }
 
     private static UserResponse ToUserResponse(ApplicationUser user)
     {
-        return new UserResponse(
-            user.Id,
-            user.Email ?? string.Empty,
-            user.FullName);
+        return new UserResponse(user.Id, user.Email ?? string.Empty, user.FullName);
     }
 }
