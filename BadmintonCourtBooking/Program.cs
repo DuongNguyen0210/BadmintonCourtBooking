@@ -47,10 +47,20 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Badminton Court Booking API v1");
+    });
+}
+else
 {
     app.UseHsts();
 }
@@ -61,5 +71,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
