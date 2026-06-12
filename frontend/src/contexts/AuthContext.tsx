@@ -96,7 +96,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = useCallback(async (request: RegisterRequest) => {
     const response = await authApi.register(request)
-    setUser(response.user)
     return response
   }, [])
 
