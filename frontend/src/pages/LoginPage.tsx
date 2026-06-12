@@ -33,7 +33,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate('/', { replace: true })
+      navigate('/dashboard', { replace: true })
     }
   }, [isAuthenticated, isLoading, navigate])
 
@@ -44,7 +44,7 @@ export function LoginPage() {
 
     try {
       await login({ email, password, rememberMe })
-      navigate('/', { replace: true })
+      navigate('/dashboard', { replace: true })
     } catch (loginError) {
       setError(getErrorMessage(loginError))
     } finally {

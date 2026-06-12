@@ -28,7 +28,7 @@ export function RegisterPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate('/', { replace: true })
+      navigate('/dashboard', { replace: true })
     }
   }, [isAuthenticated, isLoading, navigate])
 
