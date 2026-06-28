@@ -5,6 +5,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { FeedPage } from './pages/FeedPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { PlaySessionDetailPage } from './pages/PlaySessionDetailPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { ProtectedRoute } from './routes/ProtectedRoute'
 
@@ -21,6 +22,14 @@ function App() {
           element={
             <ProtectedRoute>
               <FeedPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/play-sessions/:id"
+          element={
+            <ProtectedRoute>
+              <PlaySessionDetailPage />
             </ProtectedRoute>
           }
         />
