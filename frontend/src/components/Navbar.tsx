@@ -37,9 +37,9 @@ export function Navbar() {
                     ? 'font-medium text-emerald-700'
                     : 'text-gray-600 hover:text-gray-950'
                 }
-                to="/dashboard"
+                to="/feed"
               >
-                Dashboard
+                Feed
               </NavLink>
               <span className="max-w-48 truncate text-gray-600">
                 {user?.fullName || user?.email}
