@@ -9,6 +9,10 @@ import {
 
 function getErrorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
+    if (error.response?.status === 401) {
+      return 'Phiên đăng nhập không hợp lệ hoặc cookie chưa được gửi. Hãy đăng nhập lại rồi thử tạo bài đăng.'
+    }
+
     const data = error.response?.data
 
     if (typeof data === 'object' && data !== null && 'message' in data) {
