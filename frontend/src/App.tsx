@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { Navbar } from './components/Navbar'
+import { CreatePlaySessionPage } from './pages/CreatePlaySessionPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { FeedPage } from './pages/FeedPage'
 import { HomePage } from './pages/HomePage'
@@ -20,6 +21,14 @@ function App() {
           element={
             <ProtectedRoute>
               <FeedPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/play-sessions/create"
+          element={
+            <ProtectedRoute>
+              <CreatePlaySessionPage />
             </ProtectedRoute>
           }
         />
