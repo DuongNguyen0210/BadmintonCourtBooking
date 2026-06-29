@@ -1,7 +1,9 @@
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { requestToJoin } from '../api/joinRequests'
 import { getPlaySessionPost } from '../api/playSessions'
+import type { JoinRequest } from '../types/joinRequest'
 import type { PlaySessionPostDetail } from '../types/playSession'
 
 const dateTimeFormatter = new Intl.DateTimeFormat('vi-VN', {
@@ -26,8 +28,10 @@ function getErrorMessage(error: unknown) {
 export function PlaySessionDetailPage() {
   const { id } = useParams()
   const [post, setPost] = useState<PlaySessionPostDetail | null>(null)
+  const [joinRequest, setJoinRequest] = useState<JoinRequest | null>(null)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [isRequesting, setIsRequesting] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -61,6 +65,22 @@ export function PlaySessionDetailPage() {
       isMounted = false
     }
   }, [id])
+
+  async function handleRequestToJoin() {
+    if (!post) return
+
+    setIsRequesting(true)
+    setError('')
+
+    try {
+      const data = await requestToJoin(post.id)
+      setJoinRequest(data)
+    } catch (requestError) {
+      setError(getErrorMessage(requestError))
+    } finally {
+      setIsRequesting(false)
+    }
+  }
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
@@ -107,7 +127,24 @@ export function PlaySessionDetailPage() {
               >
                 Sửa bài
               </Link>
-            ) : null}
+            ) : (
+              <button
+                className="inline-flex w-fit items-center justify-center rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+                disabled={
+                  isRequesting ||
+                  post.currentPlayers >= post.maxPlayers ||
+                  joinRequest !== null
+                }
+                onClick={() => void handleRequestToJoin()}
+                type="button"
+              >
+                {isRequesting
+                  ? 'Sending...'
+                  : joinRequest
+                    ? `Requested: ${joinRequest.status}`
+                    : 'Request to join'}
+              </button>
+            )}
           </div>
 
           <dl className="mt-6 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
@@ -138,7 +175,7 @@ export function PlaySessionDetailPage() {
             <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
               <dt className="text-gray-500">Chi phí mỗi người</dt>
               <dd className="mt-1 font-medium text-gray-900">
-                {currencyFormatter.format(post.pricePerPlayer)}
+                {currencyFormatter.format(post.pricePerPlayerVnd)}
               </dd>
             </div>
 

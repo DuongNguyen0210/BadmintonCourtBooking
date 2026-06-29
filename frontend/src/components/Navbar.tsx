@@ -41,6 +41,46 @@ export function Navbar() {
               >
                 Feed
               </NavLink>
+              <NavLink
+                className={({ isActive }) =>
+                  isActive
+                    ? 'font-medium text-emerald-700'
+                    : 'text-gray-600 hover:text-gray-950'
+                }
+                to="/join-requests"
+              >
+                Requests
+              </NavLink>
+              <NavLink
+                className={({ isActive }) =>
+                  isActive
+                    ? 'font-medium text-emerald-700'
+                    : 'text-gray-600 hover:text-gray-950'
+                }
+                to="/host/join-requests"
+              >
+                Host
+              </NavLink>
+              <NavLink
+                className={({ isActive }) =>
+                  isActive
+                    ? 'font-medium text-emerald-700'
+                    : 'text-gray-600 hover:text-gray-950'
+                }
+                to="/wallet"
+              >
+                Wallet
+              </NavLink>
+              <NavLink
+                className={({ isActive }) =>
+                  isActive
+                    ? 'font-medium text-emerald-700'
+                    : 'text-gray-600 hover:text-gray-950'
+                }
+                to="/notifications"
+              >
+                Notifications
+              </NavLink>
               <span className="max-w-48 truncate text-gray-600">
                 {user?.fullName || user?.email}
               </span>

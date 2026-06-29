@@ -45,7 +45,7 @@ export function PlaySessionCard({ post }: PlaySessionCardProps) {
         <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
           <dt className="text-gray-500">Chi phí</dt>
           <dd className="mt-1 font-medium text-gray-900">
-            {currencyFormatter.format(post.pricePerPlayer)}
+            {currencyFormatter.format(post.pricePerPlayerVnd)}
           </dd>
         </div>
 
