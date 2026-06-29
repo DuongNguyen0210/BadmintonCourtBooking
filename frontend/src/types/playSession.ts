@@ -26,6 +26,7 @@ export type PlaySessionPostListItem = {
   startTime: string
   endTime: string
   pricePerPlayer: number
+  pricePerPlayerVnd: number
   maxPlayers: number
   currentPlayers: number
   malePlayers: number | null
