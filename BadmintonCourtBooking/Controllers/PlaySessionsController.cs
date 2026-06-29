@@ -27,7 +27,7 @@ public sealed class PlaySessionsController(
             .Include(post => post.CreatorUser)
             .Where(post =>
                 post.Status == PostStatus.Active &&
-                post.EndTime > now)
+                post.StartTime > now)
             .OrderBy(post => post.StartTime)
             .ThenByDescending(post => post.CreatedAt)
             .ToListAsync(cancellationToken);
