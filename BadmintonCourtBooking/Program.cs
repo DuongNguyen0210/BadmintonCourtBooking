@@ -1,5 +1,7 @@
 using BadmintonCourtBooking.Data;
 using BadmintonCourtBooking.Models;
+using BadmintonCourtBooking.Options;
+using BadmintonCourtBooking.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +22,20 @@ var allowedOrigins = builder.Configuration
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+builder.Services.Configure<CancellationPolicyOptions>(
+    builder.Configuration.GetSection("CancellationPolicy"));
+builder.Services.Configure<PaymentOptions>(
+    builder.Configuration.GetSection("Payment"));
+builder.Services.AddSingleton<IClock, SystemClock>();
+builder.Services.AddSingleton<ICancellationPolicy>(serviceProvider =>
+{
+    var options = serviceProvider
+        .GetRequiredService<Microsoft.Extensions.Options.IOptions<CancellationPolicyOptions>>()
+        .Value;
+
+    return new CancellationPolicy(options);
+});
 
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
