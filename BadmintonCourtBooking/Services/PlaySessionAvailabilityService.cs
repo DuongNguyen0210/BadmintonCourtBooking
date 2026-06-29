@@ -35,7 +35,7 @@ public sealed class PlaySessionAvailabilityService(ApplicationDbContext dbContex
         if (post.Status != PostStatus.Active)
             return false;
 
-        if (post.StartTime <= now)
+        if (post.EndTime <= now)
             return false;
 
         return await GetOccupiedSlotsAsync(post, now, cancellationToken) < post.MaxPlayers;
