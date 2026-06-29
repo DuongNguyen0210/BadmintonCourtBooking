@@ -61,7 +61,6 @@ public sealed class PlaySessionsController(ApplicationDbContext dbContext) : Con
             CourtAddress = request.CourtAddress.Trim(),
             StartTime = request.StartTime.ToUniversalTime(),
             EndTime = request.EndTime.ToUniversalTime(),
-            PricePerPlayer = request.PricePerPlayer,
             MaxPlayers = request.MaxPlayers,
             CurrentPlayers = request.CurrentPlayers,
             MalePlayers = request.MalePlayers,
@@ -71,6 +70,7 @@ public sealed class PlaySessionsController(ApplicationDbContext dbContext) : Con
             Status = PostStatus.Active,
             CreatedAt = DateTimeOffset.UtcNow
         };
+        post.SetPricePerPlayer(request.PricePerPlayer);
 
         dbContext.PlaySessionPosts.Add(post);
         await dbContext.SaveChangesAsync();
@@ -103,7 +103,7 @@ public sealed class PlaySessionsController(ApplicationDbContext dbContext) : Con
         post.CourtAddress = request.CourtAddress.Trim();
         post.StartTime = request.StartTime.ToUniversalTime();
         post.EndTime = request.EndTime.ToUniversalTime();
-        post.PricePerPlayer = request.PricePerPlayer;
+        post.SetPricePerPlayer(request.PricePerPlayer);
         post.MaxPlayers = request.MaxPlayers;
         post.CurrentPlayers = request.CurrentPlayers;
         post.MalePlayers = request.MalePlayers;
@@ -153,6 +153,7 @@ public sealed class PlaySessionsController(ApplicationDbContext dbContext) : Con
             post.StartTime,
             post.EndTime,
             post.PricePerPlayer,
+            post.PricePerPlayerVnd,
             post.MaxPlayers,
             post.CurrentPlayers,
             post.ShowMalePlayers ? post.MalePlayers : null,
@@ -173,6 +174,7 @@ public sealed class PlaySessionsController(ApplicationDbContext dbContext) : Con
             post.StartTime,
             post.EndTime,
             post.PricePerPlayer,
+            post.PricePerPlayerVnd,
             post.MaxPlayers,
             post.CurrentPlayers,
             post.ShowMalePlayers ? post.MalePlayers : null,

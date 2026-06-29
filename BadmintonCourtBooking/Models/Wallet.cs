@@ -31,7 +31,8 @@ public sealed class Wallet
         {
             UserId = userId,
             CreatedAtUtc = now,
-            UpdatedAtUtc = now
+            UpdatedAtUtc = now,
+            ConcurrencyToken = Guid.NewGuid().ToByteArray()
         };
     }
 
@@ -41,6 +42,7 @@ public sealed class Wallet
 
         AvailableBalanceVnd += amountVnd;
         UpdatedAtUtc = now;
+        RefreshConcurrencyToken();
     }
 
     public void DebitAvailable(long amountVnd, DateTimeOffset now)
@@ -52,6 +54,7 @@ public sealed class Wallet
 
         AvailableBalanceVnd -= amountVnd;
         UpdatedAtUtc = now;
+        RefreshConcurrencyToken();
     }
 
     public void MoveAvailableToHeld(long amountVnd, DateTimeOffset now)
@@ -59,6 +62,7 @@ public sealed class Wallet
         DebitAvailable(amountVnd, now);
         HeldBalanceVnd += amountVnd;
         UpdatedAtUtc = now;
+        RefreshConcurrencyToken();
     }
 
     public void ReleaseHeld(long amountVnd, DateTimeOffset now)
@@ -70,11 +74,17 @@ public sealed class Wallet
 
         HeldBalanceVnd -= amountVnd;
         UpdatedAtUtc = now;
+        RefreshConcurrencyToken();
     }
 
     private static void EnsurePositiveAmount(long amountVnd)
     {
         if (amountVnd <= 0)
             throw new ArgumentOutOfRangeException(nameof(amountVnd), "Amount must be greater than zero.");
+    }
+
+    private void RefreshConcurrencyToken()
+    {
+        ConcurrencyToken = Guid.NewGuid().ToByteArray();
     }
 }

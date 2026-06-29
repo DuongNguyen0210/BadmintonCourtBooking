@@ -8,6 +8,7 @@ public sealed record PlaySessionPostListItemResponse(
     DateTimeOffset StartTime,
     DateTimeOffset EndTime,
     decimal PricePerPlayer,
+    long PricePerPlayerVnd,
     int MaxPlayers,
     int CurrentPlayers,
     int? MalePlayers,

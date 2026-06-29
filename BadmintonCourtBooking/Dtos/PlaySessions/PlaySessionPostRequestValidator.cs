@@ -31,6 +31,9 @@ internal static class PlaySessionPostRequestValidator
         if (pricePerPlayer < 0)
             yield return new ValidationResult("Price per player must be greater than or equal to 0.", [nameof(pricePerPlayer)]);
 
+        if (decimal.Truncate(pricePerPlayer) != pricePerPlayer)
+            yield return new ValidationResult("Price per player VND must be a whole number.", [nameof(pricePerPlayer)]);
+
         if (maxPlayers <= 0)
             yield return new ValidationResult("Max players must be greater than 0.", [nameof(maxPlayers)]);
 

@@ -20,7 +20,10 @@ public sealed class PlaySessionPost
 
     public DateTimeOffset EndTime { get; set; }
 
-    public decimal PricePerPlayer { get; set; }
+    // TODO: Remove legacy decimal price after frontend and older API consumers fully use PricePerPlayerVnd.
+    public decimal PricePerPlayer { get; private set; }
+
+    public long PricePerPlayerVnd { get; private set; }
 
     public int MaxPlayers { get; set; }
 
@@ -41,4 +44,16 @@ public sealed class PlaySessionPost
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? UpdatedAt { get; set; }
+
+    public void SetPricePerPlayer(decimal pricePerPlayer)
+    {
+        if (pricePerPlayer < 0)
+            throw new ArgumentOutOfRangeException(nameof(pricePerPlayer), "Price per player must not be negative.");
+
+        if (decimal.Truncate(pricePerPlayer) != pricePerPlayer)
+            throw new ArgumentException("VND price must be a whole number.", nameof(pricePerPlayer));
+
+        PricePerPlayer = pricePerPlayer;
+        PricePerPlayerVnd = decimal.ToInt64(pricePerPlayer);
+    }
 }
