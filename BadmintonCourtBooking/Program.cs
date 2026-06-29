@@ -41,6 +41,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IJoinRequestService, JoinRequestService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ICancellationService, CancellationService>();
+builder.Services.AddScoped<IPlaySessionAvailabilityService, PlaySessionAvailabilityService>();
 
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>

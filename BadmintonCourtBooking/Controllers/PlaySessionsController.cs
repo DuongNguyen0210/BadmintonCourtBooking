@@ -14,41 +14,51 @@ namespace BadmintonCourtBooking.Controllers;
 [Route("api/play-sessions")]
 public sealed class PlaySessionsController(
     ApplicationDbContext dbContext,
-    ICancellationService cancellationService) : ControllerBase
+    ICancellationService cancellationService,
+    IPlaySessionAvailabilityService availabilityService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<PlaySessionPostListItemResponse>>> GetFeed()
+    public async Task<ActionResult<IReadOnlyList<PlaySessionPostListItemResponse>>> GetFeed(CancellationToken cancellationToken)
     {
         var currentUserId = GetCurrentUserId();
         var now = DateTimeOffset.UtcNow;
 
-        var posts = await dbContext.PlaySessionPosts
-            .AsNoTracking()
+        var candidatePosts = await dbContext.PlaySessionPosts
             .Include(post => post.CreatorUser)
             .Where(post =>
                 post.Status == PostStatus.Active &&
-                post.CurrentPlayers < post.MaxPlayers &&
-                post.EndTime > now)
+                post.StartTime > now)
             .OrderBy(post => post.StartTime)
             .ThenByDescending(post => post.CreatedAt)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
-        return Ok(posts.Select(post => ToListItemResponse(post, currentUserId)).ToList());
+        var visiblePosts = new List<PlaySessionPostListItemResponse>();
+        foreach (var post in candidatePosts)
+        {
+            if (!await availabilityService.IsVisibleOnFeedAsync(post, now, cancellationToken))
+                continue;
+
+            var occupiedSlots = await availabilityService.GetOccupiedSlotsAsync(post, now, cancellationToken);
+            visiblePosts.Add(ToListItemResponse(post, currentUserId, occupiedSlots));
+        }
+
+        return Ok(visiblePosts);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<PlaySessionPostDetailResponse>> GetById(Guid id)
+    public async Task<ActionResult<PlaySessionPostDetailResponse>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var currentUserId = GetCurrentUserId();
         var post = await dbContext.PlaySessionPosts
-            .AsNoTracking()
             .Include(playSessionPost => playSessionPost.CreatorUser)
-            .FirstOrDefaultAsync(playSessionPost => playSessionPost.Id == id);
+            .FirstOrDefaultAsync(playSessionPost => playSessionPost.Id == id, cancellationToken);
 
         if (post is null)
             return NotFound();
 
-        return Ok(ToDetailResponse(post, currentUserId));
+        var occupiedSlots = await availabilityService.GetOccupiedSlotsAsync(post, DateTimeOffset.UtcNow, cancellationToken);
+
+        return Ok(ToDetailResponse(post, currentUserId, occupiedSlots));
     }
 
     [HttpPost]
@@ -83,7 +93,7 @@ public sealed class PlaySessionsController(
             .Include(playSessionPost => playSessionPost.CreatorUser)
             .FirstAsync(playSessionPost => playSessionPost.Id == post.Id);
 
-        return CreatedAtAction(nameof(GetById), new { id = post.Id }, ToDetailResponse(createdPost, currentUserId));
+        return CreatedAtAction(nameof(GetById), new { id = post.Id }, ToDetailResponse(createdPost, currentUserId, createdPost.CurrentPlayers));
     }
 
     [HttpPut("{id:guid}")]
@@ -117,7 +127,7 @@ public sealed class PlaySessionsController(
 
         await dbContext.SaveChangesAsync();
 
-        return Ok(ToDetailResponse(post, currentUserId));
+        return Ok(ToDetailResponse(post, currentUserId, post.CurrentPlayers));
     }
 
     [HttpDelete("{id:guid}")]
@@ -144,7 +154,7 @@ public sealed class PlaySessionsController(
             ?? throw new InvalidOperationException("Authenticated user id is missing.");
     }
 
-    private static PlaySessionPostListItemResponse ToListItemResponse(PlaySessionPost post, string currentUserId)
+    private static PlaySessionPostListItemResponse ToListItemResponse(PlaySessionPost post, string currentUserId, int occupiedSlots)
     {
         return new PlaySessionPostListItemResponse(
             post.Id,
@@ -156,7 +166,7 @@ public sealed class PlaySessionsController(
             post.PricePerPlayer,
             post.PricePerPlayerVnd,
             post.MaxPlayers,
-            post.CurrentPlayers,
+            occupiedSlots,
             post.ShowMalePlayers ? post.MalePlayers : null,
             post.ShowFemalePlayers ? post.FemalePlayers : null,
             post.Status.ToString(),
@@ -164,7 +174,7 @@ public sealed class PlaySessionsController(
             post.CreatorUserId == currentUserId);
     }
 
-    private static PlaySessionPostDetailResponse ToDetailResponse(PlaySessionPost post, string currentUserId)
+    private static PlaySessionPostDetailResponse ToDetailResponse(PlaySessionPost post, string currentUserId, int occupiedSlots)
     {
         return new PlaySessionPostDetailResponse(
             post.Id,
@@ -177,7 +187,7 @@ public sealed class PlaySessionsController(
             post.PricePerPlayer,
             post.PricePerPlayerVnd,
             post.MaxPlayers,
-            post.CurrentPlayers,
+            occupiedSlots,
             post.ShowMalePlayers ? post.MalePlayers : null,
             post.ShowFemalePlayers ? post.FemalePlayers : null,
             post.ShowMalePlayers,
