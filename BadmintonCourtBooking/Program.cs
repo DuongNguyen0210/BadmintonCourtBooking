@@ -40,6 +40,7 @@ builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IJoinRequestService, JoinRequestService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ICancellationService, CancellationService>();
 
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>

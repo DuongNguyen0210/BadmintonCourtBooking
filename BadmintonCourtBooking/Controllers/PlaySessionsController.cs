@@ -2,6 +2,7 @@ using System.Security.Claims;
 using BadmintonCourtBooking.Data;
 using BadmintonCourtBooking.Dtos.PlaySessions;
 using BadmintonCourtBooking.Models;
+using BadmintonCourtBooking.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,9 @@ namespace BadmintonCourtBooking.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/play-sessions")]
-public sealed class PlaySessionsController(ApplicationDbContext dbContext) : ControllerBase
+public sealed class PlaySessionsController(
+    ApplicationDbContext dbContext,
+    ICancellationService cancellationService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<PlaySessionPostListItemResponse>>> GetFeed()
@@ -120,21 +123,19 @@ public sealed class PlaySessionsController(ApplicationDbContext dbContext) : Con
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Cancel(Guid id)
     {
-        var currentUserId = GetCurrentUserId();
-        var post = await dbContext.PlaySessionPosts.FirstOrDefaultAsync(playSessionPost => playSessionPost.Id == id);
+        var result = await cancellationService.CancelPlaySessionByHostAsync(id, GetCurrentUserId(), HttpContext.RequestAborted);
 
-        if (post is null)
-            return NotFound();
+        if (result.Succeeded)
+            return NoContent();
 
-        if (post.CreatorUserId != currentUserId)
-            return Forbid();
-
-        post.Status = PostStatus.Cancelled;
-        post.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await dbContext.SaveChangesAsync();
-
-        return NoContent();
+        return result.Error?.Code switch
+        {
+            "PLAY_SESSION_NOT_FOUND" => NotFound(result.Error),
+            "FORBIDDEN" => Forbid(),
+            "PAYMENT_NOT_FOUND" => Conflict(result.Error),
+            "INSUFFICIENT_HELD_BALANCE" => Conflict(result.Error),
+            _ => BadRequest(result.Error)
+        };
     }
 
     private string GetCurrentUserId()
