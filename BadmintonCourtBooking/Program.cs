@@ -38,6 +38,7 @@ builder.Services.AddSingleton<ICancellationPolicy>(serviceProvider =>
 });
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IJoinRequestService, JoinRequestService>();
 
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
