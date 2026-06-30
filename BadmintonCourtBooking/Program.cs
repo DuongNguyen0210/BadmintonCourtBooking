@@ -39,6 +39,7 @@ builder.Services.AddSingleton<ICancellationPolicy>(serviceProvider =>
     return new CancellationPolicy(options);
 });
 builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<IWalletAccountingService, WalletAccountingService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IJoinRequestService, JoinRequestService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();

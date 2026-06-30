@@ -5,11 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BadmintonCourtBooking.Services;
 
-public sealed class WalletService(ApplicationDbContext dbContext, IClock clock) : IWalletService
+public sealed class WalletService(
+    ApplicationDbContext dbContext,
+    IClock clock,
+    IWalletAccountingService walletAccountingService) : IWalletService
 {
     public async Task<WalletResponse> GetWalletAsync(string userId, CancellationToken cancellationToken)
     {
-        var wallet = await GetOrCreateWalletAsync(userId, cancellationToken);
+        var wallet = await walletAccountingService.GetOrCreateWalletAsync(userId, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return ToResponse(wallet);
@@ -41,40 +44,17 @@ public sealed class WalletService(ApplicationDbContext dbContext, IClock clock) 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         var now = clock.UtcNow;
-        var wallet = await GetOrCreateWalletAsync(userId, cancellationToken);
-        var balanceBefore = wallet.AvailableBalanceVnd;
-
-        wallet.CreditAvailable(amountVnd, now);
-
-        dbContext.WalletTransactions.Add(WalletTransaction.CreateCompleted(
-            userId,
-            WalletTransactionType.TopUp,
+        var wallet = await walletAccountingService.GetOrCreateWalletAsync(userId, cancellationToken);
+        walletAccountingService.TopUp(
+            wallet,
             amountVnd,
-            balanceBefore,
-            wallet.AvailableBalanceVnd,
-            "Development wallet top-up",
             now,
-            idempotencyKey: $"development-top-up:{userId}:{Guid.NewGuid()}"));
+            $"development-top-up:{userId}:{Guid.NewGuid()}");
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         return ServiceResult<WalletResponse>.Success(ToResponse(wallet));
-    }
-
-    private async Task<Wallet> GetOrCreateWalletAsync(string userId, CancellationToken cancellationToken)
-    {
-        var wallet = await dbContext.Wallets.SingleOrDefaultAsync(
-            existingWallet => existingWallet.UserId == userId,
-            cancellationToken);
-
-        if (wallet is not null)
-            return wallet;
-
-        wallet = Wallet.Create(userId, clock.UtcNow);
-        dbContext.Wallets.Add(wallet);
-
-        return wallet;
     }
 
     private static WalletResponse ToResponse(Wallet wallet)

@@ -11,7 +11,8 @@ namespace BadmintonCourtBooking.Services;
 public sealed class PaymentService(
     ApplicationDbContext dbContext,
     IClock clock,
-    IPlaySessionAvailabilityService availabilityService) : IPaymentService
+    IPlaySessionAvailabilityService availabilityService,
+    IWalletAccountingService walletAccountingService) : IPaymentService
 {
     public async Task<ServiceResult<ConfirmPaymentResponse>> ConfirmPaymentAsync(
         Guid joinRequestId,
@@ -40,7 +41,7 @@ public sealed class PaymentService(
 
         if (request.Status == JoinRequestStatus.Joined && existingParticipant is not null)
         {
-            var existingWallet = await GetOrCreateWalletAsync(userId, cancellationToken);
+            var existingWallet = await walletAccountingService.GetOrCreateWalletAsync(userId, cancellationToken);
             return ServiceResult<ConfirmPaymentResponse>.Success(ToResponse(existingParticipant.Id, request, existingWallet));
         }
 
@@ -61,12 +62,9 @@ public sealed class PaymentService(
         if (amountVnd <= 0)
             return ServiceResult<ConfirmPaymentResponse>.Failure("INVALID_SESSION_PRICE", "Play session price must be greater than zero.");
 
-        var wallet = await GetOrCreateWalletAsync(userId, cancellationToken);
+        var wallet = await walletAccountingService.GetOrCreateWalletAsync(userId, cancellationToken);
         if (wallet.AvailableBalanceVnd < amountVnd)
             return ServiceResult<ConfirmPaymentResponse>.Failure("INSUFFICIENT_BALANCE", "Available balance is not enough.");
-
-        var balanceBefore = wallet.AvailableBalanceVnd;
-        wallet.MoveAvailableToHeld(amountVnd, now);
 
         var participant = PlaySessionParticipant.Create(
             request.PlaySessionPostId,
@@ -77,18 +75,15 @@ public sealed class PaymentService(
         request.MarkAsPaid(now);
 
         dbContext.PlaySessionParticipants.Add(participant);
-        dbContext.WalletTransactions.Add(WalletTransaction.CreateCompleted(
-            userId,
-            WalletTransactionType.EscrowHold,
+        walletAccountingService.HoldEscrow(
+            wallet,
             amountVnd,
-            balanceBefore,
-            wallet.AvailableBalanceVnd,
-            $"Escrow hold for {request.PlaySessionPost.Title}",
             now,
-            relatedUserId: request.PlaySessionPost.CreatorUserId,
-            playSessionPostId: request.PlaySessionPostId,
-            joinRequestId: request.Id,
-            idempotencyKey: $"confirm-payment:{request.Id}"));
+            request.PlaySessionPost.CreatorUserId,
+            request.PlaySessionPostId,
+            request.Id,
+            $"Escrow hold for {request.PlaySessionPost.Title}",
+            $"confirm-payment:{request.Id}");
 
         dbContext.Notifications.Add(Notification.Create(
             userId,
@@ -156,21 +151,6 @@ public sealed class PaymentService(
             return new ServiceError("PLAY_SESSION_FULL", "Play session is full.");
 
         return null;
-    }
-
-    private async Task<Wallet> GetOrCreateWalletAsync(string userId, CancellationToken cancellationToken)
-    {
-        var wallet = await dbContext.Wallets.SingleOrDefaultAsync(
-            existingWallet => existingWallet.UserId == userId,
-            cancellationToken);
-
-        if (wallet is not null)
-            return wallet;
-
-        wallet = Wallet.Create(userId, clock.UtcNow);
-        dbContext.Wallets.Add(wallet);
-
-        return wallet;
     }
 
     private static ConfirmPaymentResponse ToResponse(Guid participantId, PlaySessionJoinRequest request, Wallet wallet)

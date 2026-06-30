@@ -10,7 +10,8 @@ namespace BadmintonCourtBooking.Services;
 public sealed class CancellationService(
     ApplicationDbContext dbContext,
     IClock clock,
-    ICancellationPolicy cancellationPolicy) : ICancellationService
+    ICancellationPolicy cancellationPolicy,
+    IWalletAccountingService walletAccountingService) : ICancellationService
 {
     private const string WaiveRefundConfirmationText = "KHONG HOAN TIEN";
 
@@ -50,11 +51,11 @@ public sealed class CancellationService(
         if (payment is null)
             return ServiceResult<CancellationResponse>.Failure("PAYMENT_NOT_FOUND", "Original payment was not found.");
 
-        var guestWallet = await GetWalletAsync(participant.UserId, cancellationToken);
+        var guestWallet = await walletAccountingService.GetWalletAsync(participant.UserId, cancellationToken);
         if (guestWallet is null || guestWallet.HeldBalanceVnd < payment.AmountVnd)
             return ServiceResult<CancellationResponse>.Failure("INSUFFICIENT_HELD_BALANCE", "Held balance is not enough to cancel.");
 
-        var hostWallet = await GetOrCreateWalletAsync(participant.PlaySessionPost.CreatorUserId, cancellationToken);
+        var hostWallet = await walletAccountingService.GetOrCreateWalletAsync(participant.PlaySessionPost.CreatorUserId, cancellationToken);
         var quote = request.RefundChoice == CancellationRefundChoice.StandardRefund
             ? cancellationPolicy.Quote(payment.AmountVnd)
             : new CancellationQuote(payment.AmountVnd, 0, payment.AmountVnd);
@@ -70,45 +71,17 @@ public sealed class CancellationService(
             request.Reason);
 
         dbContext.ParticipationCancellations.Add(cancellation);
-
-        var guestAvailableBefore = guestWallet.AvailableBalanceVnd;
-        guestWallet.ReleaseHeld(payment.AmountVnd, now);
-
-        if (quote.RefundAmountVnd > 0)
-        {
-            guestWallet.CreditAvailable(quote.RefundAmountVnd, now);
-            dbContext.WalletTransactions.Add(WalletTransaction.CreateCompleted(
-                guestWallet.UserId,
-                WalletTransactionType.Refund,
-                quote.RefundAmountVnd,
-                guestAvailableBefore,
-                guestWallet.AvailableBalanceVnd,
-                "Participation cancellation refund",
-                now,
-                relatedUserId: participant.PlaySessionPost.CreatorUserId,
-                playSessionPostId: participant.PlaySessionPostId,
-                joinRequestId: participant.JoinRequestId,
-                cancellationId: cancellation.Id));
-        }
-
-        var hostAvailableBefore = hostWallet.AvailableBalanceVnd;
-        hostWallet.CreditAvailable(quote.CancellationFeeVnd, now);
-        dbContext.WalletTransactions.Add(WalletTransaction.CreateCompleted(
-            hostWallet.UserId,
-            request.RefundChoice == CancellationRefundChoice.StandardRefund
-                ? WalletTransactionType.CancellationFee
-                : WalletTransactionType.EscrowReleaseToHost,
-            quote.CancellationFeeVnd,
-            hostAvailableBefore,
-            hostWallet.AvailableBalanceVnd,
-            request.RefundChoice == CancellationRefundChoice.StandardRefund
-                ? "Participation cancellation fee"
-                : "Participation cancellation without refund",
+        walletAccountingService.ApplyParticipantCancellation(
+            guestWallet,
+            hostWallet,
+            request.RefundChoice,
+            quote,
             now,
-            relatedUserId: participant.UserId,
-            playSessionPostId: participant.PlaySessionPostId,
-            joinRequestId: participant.JoinRequestId,
-            cancellationId: cancellation.Id));
+            participant.PlaySessionPost.CreatorUserId,
+            participant.UserId,
+            participant.PlaySessionPostId,
+            participant.JoinRequestId,
+            cancellation.Id);
 
         participant.Cancel(now);
         participant.JoinRequest.Cancel(now);
@@ -180,25 +153,17 @@ public sealed class CancellationService(
             if (payment is null)
                 return ServiceResult<object>.Failure("PAYMENT_NOT_FOUND", "Original payment was not found.");
 
-            var guestWallet = await GetWalletAsync(participant.UserId, cancellationToken);
+            var guestWallet = await walletAccountingService.GetWalletAsync(participant.UserId, cancellationToken);
             if (guestWallet is null || guestWallet.HeldBalanceVnd < payment.AmountVnd)
                 return ServiceResult<object>.Failure("INSUFFICIENT_HELD_BALANCE", "Held balance is not enough to refund.");
 
-            var balanceBefore = guestWallet.AvailableBalanceVnd;
-            guestWallet.ReleaseHeld(payment.AmountVnd, now);
-            guestWallet.CreditAvailable(payment.AmountVnd, now);
-
-            dbContext.WalletTransactions.Add(WalletTransaction.CreateCompleted(
-                participant.UserId,
-                WalletTransactionType.FullRefund,
+            walletAccountingService.ApplyHostCancellationFullRefund(
+                guestWallet,
                 payment.AmountVnd,
-                balanceBefore,
-                guestWallet.AvailableBalanceVnd,
-                "Host cancelled play session full refund",
                 now,
-                relatedUserId: hostUserId,
-                playSessionPostId: playSessionPostId,
-                joinRequestId: participant.JoinRequestId));
+                hostUserId,
+                playSessionPostId,
+                participant.JoinRequestId);
 
             participant.Cancel(now);
             participant.JoinRequest.Cancel(now);
@@ -264,20 +229,4 @@ public sealed class CancellationService(
             cancellationToken);
     }
 
-    private Task<Wallet?> GetWalletAsync(string userId, CancellationToken cancellationToken)
-    {
-        return dbContext.Wallets.SingleOrDefaultAsync(wallet => wallet.UserId == userId, cancellationToken);
-    }
-
-    private async Task<Wallet> GetOrCreateWalletAsync(string userId, CancellationToken cancellationToken)
-    {
-        var wallet = await GetWalletAsync(userId, cancellationToken);
-        if (wallet is not null)
-            return wallet;
-
-        wallet = Wallet.Create(userId, clock.UtcNow);
-        dbContext.Wallets.Add(wallet);
-
-        return wallet;
-    }
 }
