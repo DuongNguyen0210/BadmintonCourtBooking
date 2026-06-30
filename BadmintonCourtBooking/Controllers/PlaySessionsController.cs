@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using BadmintonCourtBooking.Data;
 using BadmintonCourtBooking.Dtos.PlaySessions;
 using BadmintonCourtBooking.Models;
@@ -15,12 +14,13 @@ namespace BadmintonCourtBooking.Controllers;
 public sealed class PlaySessionsController(
     ApplicationDbContext dbContext,
     ICancellationService cancellationService,
-    IPlaySessionAvailabilityService availabilityService) : ControllerBase
+    IPlaySessionAvailabilityService availabilityService,
+    ICurrentUserAccessor currentUserAccessor) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<PlaySessionPostListItemResponse>>> GetFeed(CancellationToken cancellationToken)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = currentUserAccessor.GetRequiredUserId(User);
         var now = DateTimeOffset.UtcNow;
 
         var candidatePosts = await dbContext.PlaySessionPosts
@@ -48,7 +48,7 @@ public sealed class PlaySessionsController(
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PlaySessionPostDetailResponse>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = currentUserAccessor.GetRequiredUserId(User);
         var post = await dbContext.PlaySessionPosts
             .Include(playSessionPost => playSessionPost.CreatorUser)
             .FirstOrDefaultAsync(playSessionPost => playSessionPost.Id == id, cancellationToken);
@@ -64,7 +64,7 @@ public sealed class PlaySessionsController(
     [HttpPost]
     public async Task<ActionResult<PlaySessionPostDetailResponse>> Create(CreatePlaySessionPostRequest request)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = currentUserAccessor.GetRequiredUserId(User);
         var post = new PlaySessionPost
         {
             CreatorUserId = currentUserId,
@@ -99,7 +99,7 @@ public sealed class PlaySessionsController(
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<PlaySessionPostDetailResponse>> Update(Guid id, UpdatePlaySessionPostRequest request)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = currentUserAccessor.GetRequiredUserId(User);
         var post = await dbContext.PlaySessionPosts
             .Include(playSessionPost => playSessionPost.CreatorUser)
             .FirstOrDefaultAsync(playSessionPost => playSessionPost.Id == id);
@@ -133,25 +133,15 @@ public sealed class PlaySessionsController(
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Cancel(Guid id)
     {
-        var result = await cancellationService.CancelPlaySessionByHostAsync(id, GetCurrentUserId(), HttpContext.RequestAborted);
+        var result = await cancellationService.CancelPlaySessionByHostAsync(
+            id,
+            currentUserAccessor.GetRequiredUserId(User),
+            HttpContext.RequestAborted);
 
         if (result.Succeeded)
             return NoContent();
 
-        return result.Error?.Code switch
-        {
-            "PLAY_SESSION_NOT_FOUND" => NotFound(result.Error),
-            "FORBIDDEN" => Forbid(),
-            "PAYMENT_NOT_FOUND" => Conflict(result.Error),
-            "INSUFFICIENT_HELD_BALANCE" => Conflict(result.Error),
-            _ => BadRequest(result.Error)
-        };
-    }
-
-    private string GetCurrentUserId()
-    {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new InvalidOperationException("Authenticated user id is missing.");
+        return this.ToErrorResult(result.Error);
     }
 
     private static PlaySessionPostListItemResponse ToListItemResponse(PlaySessionPost post, string currentUserId, int occupiedSlots)

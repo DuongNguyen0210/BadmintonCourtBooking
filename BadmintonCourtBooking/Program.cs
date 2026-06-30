@@ -28,6 +28,7 @@ builder.Services.Configure<CancellationPolicyOptions>(
 builder.Services.Configure<PaymentOptions>(
     builder.Configuration.GetSection("Payment"));
 builder.Services.AddSingleton<IClock, SystemClock>();
+builder.Services.AddSingleton<ICurrentUserAccessor, CurrentUserAccessor>();
 builder.Services.AddSingleton<ICancellationPolicy>(serviceProvider =>
 {
     var options = serviceProvider
