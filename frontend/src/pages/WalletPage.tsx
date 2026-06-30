@@ -83,68 +83,79 @@ export function WalletPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
-      <h1 className="text-2xl font-semibold text-gray-950">Wallet</h1>
+    <main className="page page-wide">
+      <div>
+        <h1 className="page-title">Wallet</h1>
+        <p className="page-subtitle">Theo dõi số dư khả dụng, tiền đang giữ và lịch sử giao dịch.</p>
+      </div>
 
-      {error ? (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
+      {error ? <div className="alert-error mt-4">{error}</div> : null}
+
+      {isLoading ? (
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2" aria-busy="true">
+          <div className="skeleton h-28" />
+          <div className="skeleton h-28" />
         </div>
       ) : null}
 
-      {isLoading ? <p className="mt-4 text-sm text-gray-600">Loading wallet...</p> : null}
-
       {wallet ? (
         <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded border border-gray-200 bg-white p-5">
-            <p className="text-sm text-gray-500">Available</p>
-            <p className="mt-2 text-2xl font-semibold text-gray-950">
-              {currencyFormatter.format(wallet.availableBalanceVnd)}
-            </p>
+          <div className="metric">
+            <p className="metric-label">Available</p>
+            <p className="metric-value">{currencyFormatter.format(wallet.availableBalanceVnd)}</p>
           </div>
-          <div className="rounded border border-gray-200 bg-white p-5">
-            <p className="text-sm text-gray-500">Held</p>
-            <p className="mt-2 text-2xl font-semibold text-gray-950">
-              {currencyFormatter.format(wallet.heldBalanceVnd)}
-            </p>
+          <div className="metric">
+            <p className="metric-label">Held</p>
+            <p className="metric-value">{currencyFormatter.format(wallet.heldBalanceVnd)}</p>
           </div>
         </section>
       ) : null}
 
       {import.meta.env.DEV ? (
-        <section className="mt-5 rounded border border-gray-200 bg-white p-5">
-          <h2 className="text-lg font-semibold text-gray-950">Development top-up</h2>
-          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-            <input
-              className="rounded border border-gray-300 px-3 py-2 text-sm"
-              min={1}
-              onChange={(event) => setAmountVnd(Number(event.target.value))}
-              type="number"
-              value={amountVnd}
-            />
-            <button
-              className="rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-              disabled={isSubmitting || amountVnd <= 0}
-              onClick={() => void handleTopUp()}
-              type="button"
-            >
-              {isSubmitting ? 'Adding...' : 'Add balance'}
-            </button>
+        <section className="panel panel-pad mt-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-950">Development top-up</h2>
+              <p className="mt-1 text-sm text-gray-600">Chỉ dùng cho môi trường development.</p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                className="input mt-0 sm:w-48"
+                min={1}
+                onChange={(event) => setAmountVnd(Number(event.target.value))}
+                type="number"
+                value={amountVnd}
+              />
+              <button
+                className="btn btn-primary"
+                disabled={isSubmitting || amountVnd <= 0}
+                onClick={() => void handleTopUp()}
+                type="button"
+              >
+                {isSubmitting ? 'Adding...' : 'Add balance'}
+              </button>
+            </div>
           </div>
         </section>
       ) : null}
 
-      <section className="mt-5 rounded border border-gray-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-gray-950">Transactions</h2>
+      <section className="panel panel-pad mt-5">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-950">Transactions</h2>
+          <span className="badge badge-gray">{transactions.length}</span>
+        </div>
+
         <div className="mt-3 divide-y divide-gray-100">
           {transactions.length === 0 ? (
-            <p className="py-3 text-sm text-gray-600">No transactions yet.</p>
+            <p className="py-6 text-sm text-gray-600">No transactions yet.</p>
           ) : null}
           {transactions.map((transaction) => (
             <div key={transaction.id} className="py-3 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <span className="font-medium text-gray-900">{transaction.type}</span>
-                <span>{currencyFormatter.format(transaction.amountVnd)}</span>
+                <span className="font-semibold text-gray-900">{transaction.type}</span>
+                <span className="font-medium text-gray-950">
+                  {currencyFormatter.format(transaction.amountVnd)}
+                </span>
               </div>
               <p className="mt-1 text-gray-600">{transaction.description}</p>
             </div>

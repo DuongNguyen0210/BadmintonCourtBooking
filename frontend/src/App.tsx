@@ -16,7 +16,7 @@ import { ProtectedRoute } from './routes/ProtectedRoute'
 
 function App() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="app-shell">
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />

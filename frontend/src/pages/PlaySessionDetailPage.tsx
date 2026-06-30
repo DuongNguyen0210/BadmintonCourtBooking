@@ -83,103 +83,92 @@ export function PlaySessionDetailPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
+    <main className="page page-narrow">
       <div className="mb-5">
-        <Link className="text-sm font-medium text-emerald-700 hover:text-emerald-800" to="/feed">
+        <Link className="text-sm font-semibold text-emerald-700 hover:text-emerald-800" to="/feed">
           Quay lại bảng tin
         </Link>
       </div>
 
       {isLoading ? (
-        <section className="rounded border border-gray-200 bg-white p-5" aria-busy="true">
-          <div className="h-4 w-32 rounded bg-gray-100" />
-          <div className="mt-4 h-7 w-2/3 rounded bg-gray-100" />
+        <section className="panel panel-pad" aria-busy="true">
+          <div className="skeleton h-4 w-32" />
+          <div className="skeleton mt-4 h-7 w-2/3" />
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="h-16 rounded bg-gray-100" />
-            <div className="h-16 rounded bg-gray-100" />
-            <div className="h-16 rounded bg-gray-100" />
-            <div className="h-16 rounded bg-gray-100" />
+            <div className="skeleton h-16" />
+            <div className="skeleton h-16" />
+            <div className="skeleton h-16" />
+            <div className="skeleton h-16" />
           </div>
         </section>
       ) : null}
 
-      {!isLoading && error ? (
-        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
+      {!isLoading && error ? <div className="alert-error">{error}</div> : null}
 
       {!isLoading && !error && post ? (
-        <article className="rounded border border-gray-200 bg-white p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-500">{post.creatorName}</p>
-              <h1 className="mt-2 text-2xl font-semibold text-gray-950">{post.title}</h1>
+        <article className="panel panel-pad">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-gray-500">{post.creatorName}</p>
+              <h1 className="page-title mt-2">{post.title}</h1>
               <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-700">
                 {post.description || 'Chưa có mô tả.'}
               </p>
             </div>
 
             {post.canManage ? (
-              <Link
-                className="inline-flex w-fit items-center justify-center rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
-                to={`/play-sessions/${post.id}/edit`}
-              >
+              <Link className="btn btn-secondary w-fit" to={`/play-sessions/${post.id}/edit`}>
                 Sửa bài
               </Link>
             ) : (
               <button
-                className="inline-flex w-fit items-center justify-center rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-                disabled={
-                  isRequesting ||
-                  post.currentPlayers >= post.maxPlayers ||
-                  joinRequest !== null
-                }
+                className="btn btn-primary w-fit"
+                disabled={isRequesting || post.currentPlayers >= post.maxPlayers || joinRequest !== null}
                 onClick={() => void handleRequestToJoin()}
                 type="button"
               >
                 {isRequesting
-                  ? 'Sending...'
+                  ? 'Đang gửi...'
                   : joinRequest
-                    ? `Requested: ${joinRequest.status}`
-                    : 'Request to join'}
+                    ? `Đã gửi: ${joinRequest.status}`
+                    : 'Yêu cầu tham gia'}
               </button>
             )}
           </div>
 
           <dl className="mt-6 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-            <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
+            <div className="soft-panel px-3 py-2">
               <dt className="text-gray-500">Sân</dt>
               <dd className="mt-1 font-medium text-gray-900">{post.courtName}</dd>
             </div>
 
-            <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
+            <div className="soft-panel px-3 py-2">
               <dt className="text-gray-500">Địa chỉ</dt>
               <dd className="mt-1 font-medium text-gray-900">{post.courtAddress}</dd>
             </div>
 
-            <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
+            <div className="soft-panel px-3 py-2">
               <dt className="text-gray-500">Bắt đầu</dt>
               <dd className="mt-1 font-medium text-gray-900">
                 {dateTimeFormatter.format(new Date(post.startTime))}
               </dd>
             </div>
 
-            <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
+            <div className="soft-panel px-3 py-2">
               <dt className="text-gray-500">Kết thúc</dt>
               <dd className="mt-1 font-medium text-gray-900">
                 {dateTimeFormatter.format(new Date(post.endTime))}
               </dd>
             </div>
 
-            <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
+            <div className="soft-panel px-3 py-2">
               <dt className="text-gray-500">Chi phí mỗi người</dt>
               <dd className="mt-1 font-medium text-gray-900">
                 {currencyFormatter.format(post.pricePerPlayerVnd)}
               </dd>
             </div>
 
-            <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
+            <div className="soft-panel px-3 py-2">
               <dt className="text-gray-500">Thành viên</dt>
               <dd className="mt-1 font-medium text-gray-900">
                 {post.currentPlayers}/{post.maxPlayers}
@@ -187,7 +176,7 @@ export function PlaySessionDetailPage() {
             </div>
 
             {(post.malePlayers !== null || post.femalePlayers !== null) && (
-              <div className="rounded border border-gray-100 bg-gray-50 px-3 py-2 sm:col-span-2">
+              <div className="soft-panel px-3 py-2 sm:col-span-2">
                 <dt className="text-gray-500">Số nam / nữ</dt>
                 <dd className="mt-1 font-medium text-gray-900">
                   {post.malePlayers !== null ? `${post.malePlayers} nam` : 'Ẩn số nam'}

@@ -47,20 +47,17 @@ export function CreatePlaySessionPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
+    <main className="page page-narrow">
       <div className="mb-5">
-        <Link className="text-sm font-medium text-emerald-700 hover:text-emerald-800" to="/feed">
+        <Link className="text-sm font-semibold text-emerald-700 hover:text-emerald-800" to="/feed">
           Quay lại bảng tin
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold text-gray-950">Tạo bài đăng</h1>
+        <h1 className="page-title mt-3">Tạo bài đăng</h1>
+        <p className="page-subtitle">Điền thông tin sân, thời gian chơi và số slot cần tuyển.</p>
       </div>
 
-      <section className="rounded border border-gray-200 bg-white p-5">
-        {error ? (
-          <div className="mb-5 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            {error}
-          </div>
-        ) : null}
+      <section className="panel panel-pad">
+        {error ? <div className="alert-error mb-5">{error}</div> : null}
 
         <PlaySessionPostForm
           isSubmitting={isSubmitting}

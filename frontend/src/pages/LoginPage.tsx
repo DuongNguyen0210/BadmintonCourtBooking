@@ -53,29 +53,21 @@ export function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md items-center px-6 py-12">
-      <section className="w-full rounded border border-gray-200 bg-white p-6">
+    <main className="page flex items-center justify-center">
+      <section className="panel panel-pad w-full max-w-md">
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
-            BadmintonCourtBooking
-          </p>
+          <span className="badge badge-emerald">Welcome back</span>
           <h1 className="mt-3 text-2xl font-semibold text-gray-950">Sign in</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Use your email and password to continue.
+            Continue to your feed, wallet, and join requests.
           </p>
         </div>
 
         {state?.message ? (
-          <div className="mt-5 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-            {state.message}
-          </div>
+          <div className="alert-success mt-5">{state.message}</div>
         ) : null}
 
-        {error ? (
-          <div className="mt-5 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-            {error}
-          </div>
-        ) : null}
+        {error ? <div className="alert-error mt-5">{error}</div> : null}
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div>
@@ -84,7 +76,7 @@ export function LoginPage() {
             </label>
             <input
               autoComplete="email"
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              className="input"
               id="email"
               onChange={(event) => setEmail(event.target.value)}
               required
@@ -99,7 +91,7 @@ export function LoginPage() {
             </label>
             <input
               autoComplete="current-password"
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              className="input"
               id="password"
               onChange={(event) => setPassword(event.target.value)}
               required
@@ -119,7 +111,7 @@ export function LoginPage() {
           </label>
 
           <button
-            className="w-full rounded bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400"
+            className="btn btn-primary w-full"
             disabled={isSubmitting}
             type="submit"
           >

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { type FormEvent, useMemo, useState } from 'react'
 import type { CreatePlaySessionPostRequest } from '../../types/playSession'
 
 export type PlaySessionPostFormValues = CreatePlaySessionPostRequest
@@ -63,7 +63,7 @@ export function PlaySessionPostForm({
     setValues((current) => ({ ...current, [field]: value }))
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
 
@@ -94,48 +94,46 @@ export function PlaySessionPostForm({
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
-      {error ? (
-        <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
+    <form className="space-y-6" onSubmit={handleSubmit}>
+      {error ? <div className="alert-error">{error}</div> : null}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-800" htmlFor="title">
-          Tiêu đề
-        </label>
-        <input
-          className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-          id="title"
-          maxLength={120}
-          onChange={(event) => updateField('title', event.target.value)}
-          required
-          type="text"
-          value={values.title}
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-800" htmlFor="description">
-          Mô tả
-        </label>
-        <textarea
-          className="mt-1 min-h-28 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-          id="description"
-          maxLength={1000}
-          onChange={(event) => updateField('description', event.target.value)}
-          value={values.description}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <section className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="courtName">
+          <label className="label" htmlFor="title">
+            Tiêu đề
+          </label>
+          <input
+            className="input"
+            id="title"
+            maxLength={120}
+            onChange={(event) => updateField('title', event.target.value)}
+            required
+            type="text"
+            value={values.title}
+          />
+        </div>
+
+        <div>
+          <label className="label" htmlFor="description">
+            Mô tả
+          </label>
+          <textarea
+            className="input min-h-28"
+            id="description"
+            maxLength={1000}
+            onChange={(event) => updateField('description', event.target.value)}
+            value={values.description}
+          />
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className="label" htmlFor="courtName">
             Tên sân
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="courtName"
             maxLength={200}
             onChange={(event) => updateField('courtName', event.target.value)}
@@ -146,11 +144,11 @@ export function PlaySessionPostForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="courtAddress">
+          <label className="label" htmlFor="courtAddress">
             Địa chỉ sân
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="courtAddress"
             maxLength={300}
             onChange={(event) => updateField('courtAddress', event.target.value)}
@@ -159,15 +157,15 @@ export function PlaySessionPostForm({
             value={values.courtAddress}
           />
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="startTime">
+          <label className="label" htmlFor="startTime">
             Giờ bắt đầu
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="startTime"
             onChange={(event) => updateField('startTime', event.target.value)}
             required
@@ -177,11 +175,11 @@ export function PlaySessionPostForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="endTime">
+          <label className="label" htmlFor="endTime">
             Giờ kết thúc
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="endTime"
             onChange={(event) => updateField('endTime', event.target.value)}
             required
@@ -189,15 +187,15 @@ export function PlaySessionPostForm({
             value={values.endTime}
           />
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="pricePerPlayer">
+          <label className="label" htmlFor="pricePerPlayer">
             Chi phí mỗi người
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="pricePerPlayer"
             min={0}
             onChange={(event) => updateField('pricePerPlayer', Number(event.target.value))}
@@ -208,11 +206,11 @@ export function PlaySessionPostForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="maxPlayers">
+          <label className="label" htmlFor="maxPlayers">
             Số người tối đa
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="maxPlayers"
             min={1}
             onChange={(event) => updateField('maxPlayers', Number(event.target.value))}
@@ -221,15 +219,15 @@ export function PlaySessionPostForm({
             value={values.maxPlayers}
           />
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="currentPlayers">
+          <label className="label" htmlFor="currentPlayers">
             Số người hiện tại
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="currentPlayers"
             min={0}
             onChange={(event) => updateField('currentPlayers', Number(event.target.value))}
@@ -240,11 +238,11 @@ export function PlaySessionPostForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="malePlayers">
+          <label className="label" htmlFor="malePlayers">
             Số nam
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="malePlayers"
             min={0}
             onChange={(event) => updateField('malePlayers', Number(event.target.value))}
@@ -255,11 +253,11 @@ export function PlaySessionPostForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-800" htmlFor="femalePlayers">
+          <label className="label" htmlFor="femalePlayers">
             Số nữ
           </label>
           <input
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+            className="input"
             id="femalePlayers"
             min={0}
             onChange={(event) => updateField('femalePlayers', Number(event.target.value))}
@@ -268,10 +266,10 @@ export function PlaySessionPostForm({
             value={values.femalePlayers}
           />
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="flex items-center gap-2 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800">
           <input
             checked={values.showMalePlayers}
             className="h-4 w-4 rounded border-gray-300 text-emerald-700 focus:ring-emerald-600"
@@ -281,7 +279,7 @@ export function PlaySessionPostForm({
           Hiển thị số nam
         </label>
 
-        <label className="flex items-center gap-2 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800">
+        <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800">
           <input
             checked={values.showFemalePlayers}
             className="h-4 w-4 rounded border-gray-300 text-emerald-700 focus:ring-emerald-600"
@@ -290,13 +288,9 @@ export function PlaySessionPostForm({
           />
           Hiển thị số nữ
         </label>
-      </div>
+      </section>
 
-      <button
-        className="inline-flex w-full items-center justify-center rounded bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400 sm:w-auto"
-        disabled={isSubmitting}
-        type="submit"
-      >
+      <button className="btn btn-primary w-full sm:w-auto" disabled={isSubmitting} type="submit">
         {isSubmitting ? 'Đang lưu...' : submitLabel}
       </button>
     </form>

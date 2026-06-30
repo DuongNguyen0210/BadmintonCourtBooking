@@ -102,9 +102,7 @@ export function EditPlaySessionPage() {
   }, [id])
 
   async function handleSubmit(values: PlaySessionPostFormValues) {
-    if (!id) {
-      return
-    }
+    if (!id) return
 
     setError('')
     setIsSubmitting(true)
@@ -120,14 +118,10 @@ export function EditPlaySessionPage() {
   }
 
   async function handleCancelPost() {
-    if (!id) {
-      return
-    }
+    if (!id) return
 
     const confirmed = window.confirm('Bạn muốn hủy bài đăng này?')
-    if (!confirmed) {
-      return
-    }
+    if (!confirmed) return
 
     setError('')
     setIsCancelling(true)
@@ -143,35 +137,31 @@ export function EditPlaySessionPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
+    <main className="page page-narrow">
       <div className="mb-5">
-        <Link className="text-sm font-medium text-emerald-700 hover:text-emerald-800" to="/feed">
+        <Link className="text-sm font-semibold text-emerald-700 hover:text-emerald-800" to="/feed">
           Quay lại bảng tin
         </Link>
-        <h1 className="mt-3 text-2xl font-semibold text-gray-950">Sửa bài đăng</h1>
+        <h1 className="page-title mt-3">Sửa bài đăng</h1>
       </div>
 
       {isLoading ? (
-        <section className="rounded border border-gray-200 bg-white p-5" aria-busy="true">
-          <div className="h-8 w-1/2 rounded bg-gray-100" />
-          <div className="mt-6 h-80 rounded bg-gray-100" />
+        <section className="panel panel-pad" aria-busy="true">
+          <div className="skeleton h-8 w-1/2" />
+          <div className="skeleton mt-6 h-80" />
         </section>
       ) : null}
 
-      {!isLoading && error ? (
-        <div className="mb-5 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
+      {!isLoading && error ? <div className="alert-error mb-5">{error}</div> : null}
 
       {!isLoading && post && !post.canManage ? (
-        <section className="rounded border border-gray-200 bg-white p-6">
+        <section className="panel panel-pad">
           <p className="text-sm text-gray-700">Bạn không có quyền sửa bài đăng này.</p>
         </section>
       ) : null}
 
       {!isLoading && post && post.canManage ? (
-        <section className="rounded border border-gray-200 bg-white p-5">
+        <section className="panel panel-pad">
           <PlaySessionPostForm
             initialValues={toFormValues(post)}
             isSubmitting={isSubmitting}
@@ -181,7 +171,7 @@ export function EditPlaySessionPage() {
 
           <div className="mt-6 border-t border-gray-200 pt-5">
             <button
-              className="inline-flex items-center justify-center rounded border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+              className="btn btn-danger"
               disabled={isCancelling}
               onClick={handleCancelPost}
               type="button"

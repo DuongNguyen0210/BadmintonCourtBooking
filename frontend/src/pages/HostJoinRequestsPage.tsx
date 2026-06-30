@@ -76,29 +76,31 @@ export function HostJoinRequestsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
-      <h1 className="text-2xl font-semibold text-gray-950">Host join requests</h1>
+    <main className="page page-wide">
+      <div>
+        <h1 className="page-title">Host join requests</h1>
+        <p className="page-subtitle">Duyệt hoặc từ chối các yêu cầu đang chờ của bài đăng bạn tạo.</p>
+      </div>
 
-      {error ? (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
+      {error ? <div className="alert-error mt-4">{error}</div> : null}
 
-      {isLoading ? <p className="mt-4 text-sm text-gray-600">Loading requests...</p> : null}
+      {isLoading ? <div className="skeleton mt-5 h-28" aria-busy="true" /> : null}
 
       {!isLoading && requests.length === 0 ? (
-        <p className="mt-4 rounded border border-gray-200 bg-white p-5 text-sm text-gray-600">
-          No pending requests.
-        </p>
+        <section className="panel panel-pad mt-5">
+          <p className="text-sm text-gray-600">No pending requests.</p>
+        </section>
       ) : null}
 
       <div className="mt-5 space-y-3">
         {requests.map((request) => (
-          <article key={request.id} className="rounded border border-gray-200 bg-white p-5">
+          <article key={request.id} className="panel panel-pad">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-950">{request.playSessionTitle}</h2>
+                <span className="badge badge-amber">Pending approval</span>
+                <h2 className="mt-2 text-lg font-semibold text-gray-950">
+                  {request.playSessionTitle}
+                </h2>
                 <p className="mt-1 text-sm text-gray-600">{request.courtName}</p>
                 <p className="mt-2 text-sm text-gray-600">
                   Guest: <span className="font-medium text-gray-900">{request.guestName}</span>
@@ -107,7 +109,7 @@ export function HostJoinRequestsPage() {
 
               <div className="flex flex-wrap gap-2">
                 <button
-                  className="rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  className="btn btn-primary"
                   disabled={submittingId === request.id}
                   onClick={() => void handleApprove(request.id)}
                   type="button"
@@ -115,7 +117,7 @@ export function HostJoinRequestsPage() {
                   Approve
                 </button>
                 <button
-                  className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  className="btn btn-secondary"
                   disabled={submittingId === request.id}
                   onClick={() => void handleReject(request.id)}
                   type="button"

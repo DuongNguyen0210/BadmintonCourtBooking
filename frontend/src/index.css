@@ -1,11 +1,36 @@
 @import "tailwindcss";
 
+:root {
+  color-scheme: light;
+  --app-bg: #f6f8f7;
+  --surface: #ffffff;
+  --surface-muted: #f0f5f3;
+  --border: #dce5e1;
+  --text: #17211d;
+  --muted: #64746c;
+  --accent: #047857;
+  --accent-strong: #065f46;
+  --accent-soft: #dff5eb;
+  --danger: #b42318;
+  --danger-soft: #fee4e2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--app-bg);
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #f8fafc;
-  color: #111827;
+  background:
+    linear-gradient(180deg, rgba(223, 245, 235, 0.72), rgba(246, 248, 247, 0) 18rem),
+    var(--app-bg);
+  color: var(--text);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -13,4 +38,119 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+@layer components {
+  .app-shell {
+    @apply flex min-h-screen flex-col;
+  }
+
+  .page {
+    @apply mx-auto w-full flex-1 px-4 py-6 sm:px-6 lg:py-8;
+  }
+
+  .page-narrow {
+    @apply max-w-3xl;
+  }
+
+  .page-wide {
+    @apply max-w-5xl;
+  }
+
+  .page-title {
+    @apply text-2xl font-semibold text-gray-950 sm:text-3xl;
+  }
+
+  .page-subtitle {
+    @apply mt-1 max-w-2xl text-sm leading-6 text-gray-600;
+  }
+
+  .panel {
+    @apply rounded-lg border border-gray-200 bg-white;
+  }
+
+  .panel-pad {
+    @apply p-5 sm:p-6;
+  }
+
+  .soft-panel {
+    @apply rounded-lg border border-emerald-100 bg-emerald-50/70;
+  }
+
+  .btn {
+    @apply inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply bg-emerald-700 text-white hover:bg-emerald-800;
+  }
+
+  .btn-secondary {
+    @apply border border-gray-300 bg-white text-gray-800 hover:bg-gray-50;
+  }
+
+  .btn-danger {
+    @apply border border-red-300 bg-white text-red-700 hover:bg-red-50 focus:ring-red-500;
+  }
+
+  .input {
+    @apply mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-950 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-gray-800;
+  }
+
+  .badge {
+    @apply inline-flex w-fit items-center rounded-lg border px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .badge-emerald {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+  }
+
+  .badge-gray {
+    @apply border-gray-200 bg-gray-50 text-gray-700;
+  }
+
+  .badge-amber {
+    @apply border-amber-200 bg-amber-50 text-amber-800;
+  }
+
+  .alert-error {
+    @apply rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800;
+  }
+
+  .alert-success {
+    @apply rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900;
+  }
+
+  .metric {
+    @apply rounded-lg border border-gray-200 bg-white p-5;
+  }
+
+  .metric-label {
+    @apply text-sm font-medium text-gray-500;
+  }
+
+  .metric-value {
+    @apply mt-2 text-2xl font-semibold text-gray-950;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-gray-100;
+  }
 }

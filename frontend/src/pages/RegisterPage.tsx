@@ -57,23 +57,17 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md items-center px-6 py-12">
-      <section className="w-full rounded border border-gray-200 bg-white p-6">
+    <main className="page flex items-center justify-center">
+      <section className="panel panel-pad w-full max-w-md">
         <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-emerald-700">
-            BadmintonCourtBooking
-          </p>
+          <span className="badge badge-emerald">New account</span>
           <h1 className="mt-3 text-2xl font-semibold text-gray-950">Create account</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Register with your name, email, and password.
+            Create a player account to request games and manage your wallet.
           </p>
         </div>
 
-        {error ? (
-          <div className="mt-5 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-            {error}
-          </div>
-        ) : null}
+        {error ? <div className="alert-error mt-5">{error}</div> : null}
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div>
@@ -82,7 +76,7 @@ export function RegisterPage() {
             </label>
             <input
               autoComplete="name"
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              className="input"
               id="fullName"
               maxLength={100}
               onChange={(event) => setFullName(event.target.value)}
@@ -98,7 +92,7 @@ export function RegisterPage() {
             </label>
             <input
               autoComplete="email"
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              className="input"
               id="email"
               onChange={(event) => setEmail(event.target.value)}
               required
@@ -113,7 +107,7 @@ export function RegisterPage() {
             </label>
             <input
               autoComplete="new-password"
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              className="input"
               id="password"
               minLength={8}
               onChange={(event) => setPassword(event.target.value)}
@@ -132,7 +126,7 @@ export function RegisterPage() {
             </label>
             <input
               autoComplete="new-password"
-              className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              className="input"
               id="confirmPassword"
               minLength={8}
               onChange={(event) => setConfirmPassword(event.target.value)}
@@ -143,7 +137,7 @@ export function RegisterPage() {
           </div>
 
           <button
-            className="w-full rounded bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-400"
+            className="btn btn-primary w-full"
             disabled={isSubmitting}
             type="submit"
           >

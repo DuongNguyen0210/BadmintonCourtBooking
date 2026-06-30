@@ -25,6 +25,12 @@ function getErrorMessage(error: unknown) {
   return 'Request failed. Please try again.'
 }
 
+function statusBadgeClass(status: string) {
+  if (status === 'Joined') return 'badge badge-emerald'
+  if (status === 'AwaitingPayment') return 'badge badge-amber'
+  return 'badge badge-gray'
+}
+
 export function JoinRequestsPage() {
   const [requests, setRequests] = useState<JoinRequest[]>([])
   const [error, setError] = useState('')
@@ -95,8 +101,7 @@ export function JoinRequestsPage() {
       await cancelParticipation(participantId, {
         refundChoice,
         reason: reason || null,
-        waiveRefundConfirmation:
-          refundChoice === 'WaiveRefund' ? waiveText : null,
+        waiveRefundConfirmation: refundChoice === 'WaiveRefund' ? waiveText : null,
       })
       setCancelTarget(null)
       await loadRequests()
@@ -108,36 +113,33 @@ export function JoinRequestsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
-      <h1 className="text-2xl font-semibold text-gray-950">My join requests</h1>
+    <main className="page page-wide">
+      <div>
+        <h1 className="page-title">My join requests</h1>
+        <p className="page-subtitle">Theo dõi yêu cầu tham gia, hạn thanh toán và lượt đã join.</p>
+      </div>
 
-      {error ? (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
+      {error ? <div className="alert-error mt-4">{error}</div> : null}
 
-      {isLoading ? <p className="mt-4 text-sm text-gray-600">Loading requests...</p> : null}
+      {isLoading ? <div className="skeleton mt-5 h-28" aria-busy="true" /> : null}
 
       {!isLoading && requests.length === 0 ? (
-        <p className="mt-4 rounded border border-gray-200 bg-white p-5 text-sm text-gray-600">
-          You have not requested to join any play sessions yet.
-        </p>
+        <section className="panel panel-pad mt-5">
+          <p className="text-sm text-gray-600">You have not requested to join any play sessions yet.</p>
+        </section>
       ) : null}
 
       <div className="mt-5 space-y-3">
         {requests.map((request) => (
-          <article key={request.id} className="rounded border border-gray-200 bg-white p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <article key={request.id} className="panel panel-pad">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-sm text-gray-500">{request.courtName}</p>
-                <h2 className="mt-1 text-lg font-semibold text-gray-950">
+                <span className={statusBadgeClass(request.status)}>{request.status}</span>
+                <h2 className="mt-2 text-lg font-semibold text-gray-950">
                   {request.playSessionTitle}
                 </h2>
+                <p className="mt-1 text-sm text-gray-600">{request.courtName}</p>
                 <p className="mt-2 text-sm text-gray-600">
-                  Status: <span className="font-medium text-gray-900">{request.status}</span>
-                </p>
-                <p className="mt-1 text-sm text-gray-600">
                   Price: {currencyFormatter.format(request.pricePerPlayerVnd)}
                 </p>
                 {request.paymentDueAtUtc ? (
@@ -147,42 +149,42 @@ export function JoinRequestsPage() {
                 ) : null}
               </div>
 
-              {request.status === 'AwaitingPayment' ? (
-                <button
-                  className="inline-flex items-center justify-center rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-                  disabled={submittingId === request.id}
-                  onClick={() => void handlePay(request.id)}
-                  type="button"
-                >
-                  {submittingId === request.id ? 'Paying...' : 'Pay from wallet'}
-                </button>
-              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {request.status === 'AwaitingPayment' ? (
+                  <button
+                    className="btn btn-primary"
+                    disabled={submittingId === request.id}
+                    onClick={() => void handlePay(request.id)}
+                    type="button"
+                  >
+                    {submittingId === request.id ? 'Paying...' : 'Pay from wallet'}
+                  </button>
+                ) : null}
 
-              {request.status === 'Joined' && paidParticipants[request.id] ? (
-                <button
-                  className="inline-flex items-center justify-center rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100"
-                  disabled={submittingId === request.id}
-                  onClick={() => setCancelTarget(request)}
-                  type="button"
-                >
-                  Cancel participation
-                </button>
-              ) : null}
+                {request.status === 'Joined' && paidParticipants[request.id] ? (
+                  <button
+                    className="btn btn-secondary"
+                    disabled={submittingId === request.id}
+                    onClick={() => setCancelTarget(request)}
+                    type="button"
+                  >
+                    Cancel participation
+                  </button>
+                ) : null}
+              </div>
             </div>
           </article>
         ))}
       </div>
 
       {cancelTarget ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <section className="w-full max-w-lg rounded bg-white p-5 shadow-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/45 px-4">
+          <section className="panel w-full max-w-lg p-5 shadow-lg">
             <h2 className="text-lg font-semibold text-gray-950">Cancel participation</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Session: {cancelTarget.playSessionTitle}
-            </p>
+            <p className="mt-2 text-sm text-gray-600">Session: {cancelTarget.playSessionTitle}</p>
 
             <div className="mt-4 space-y-3">
-              <label className="flex gap-3 rounded border border-gray-200 p-3 text-sm">
+              <label className="flex gap-3 rounded-lg border border-gray-200 p-3 text-sm">
                 <input
                   checked={refundChoice === 'StandardRefund'}
                   onChange={() => setRefundChoice('StandardRefund')}
@@ -191,7 +193,7 @@ export function JoinRequestsPage() {
                 <span>Refund 90%, host receives 10% cancellation fee.</span>
               </label>
 
-              <label className="flex gap-3 rounded border border-gray-200 p-3 text-sm">
+              <label className="flex gap-3 rounded-lg border border-gray-200 p-3 text-sm">
                 <input
                   checked={refundChoice === 'WaiveRefund'}
                   onChange={() => setRefundChoice('WaiveRefund')}
@@ -201,18 +203,18 @@ export function JoinRequestsPage() {
               </label>
             </div>
 
-            <label className="mt-4 block text-sm font-medium text-gray-700" htmlFor="reason">
+            <label className="label mt-4" htmlFor="reason">
               Reason
             </label>
             <textarea
-              className="mt-1 min-h-20 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+              className="input min-h-20"
               id="reason"
               onChange={(event) => setReason(event.target.value)}
               value={reason}
             />
 
             {refundChoice === 'WaiveRefund' ? (
-              <div className="mt-4 space-y-3 rounded border border-red-200 bg-red-50 p-3">
+              <div className="mt-4 space-y-3 rounded-lg border border-red-200 bg-red-50 p-3">
                 <label className="flex gap-2 text-sm text-red-900">
                   <input
                     checked={waiveChecked}
@@ -222,7 +224,7 @@ export function JoinRequestsPage() {
                   <span>I understand that I will not receive a refund.</span>
                 </label>
                 <input
-                  className="w-full rounded border border-red-300 px-3 py-2 text-sm"
+                  className="input border-red-300"
                   onChange={(event) => setWaiveText(event.target.value)}
                   placeholder="Type KHONG HOAN TIEN"
                   value={waiveText}
@@ -231,15 +233,11 @@ export function JoinRequestsPage() {
             ) : null}
 
             <div className="mt-5 flex flex-wrap justify-end gap-2">
-              <button
-                className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
-                onClick={() => setCancelTarget(null)}
-                type="button"
-              >
+              <button className="btn btn-secondary" onClick={() => setCancelTarget(null)} type="button">
                 Close
               </button>
               <button
-                className="rounded bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+                className="btn bg-red-700 text-white hover:bg-red-800 focus:ring-red-500"
                 disabled={
                   submittingId === cancelTarget.id ||
                   (refundChoice === 'WaiveRefund' &&
