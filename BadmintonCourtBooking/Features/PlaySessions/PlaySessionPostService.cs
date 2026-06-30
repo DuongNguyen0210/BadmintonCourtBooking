@@ -8,7 +8,7 @@ namespace BadmintonCourtBooking.Features.PlaySessions;
 
 public sealed class PlaySessionPostService(
     ApplicationDbContext dbContext,
-    ICancellationService cancellationService,
+    IHostPlaySessionCancellationService cancellationService,
     IPlaySessionAvailabilityService availabilityService,
     IClock clock) : IPlaySessionPostService
 {

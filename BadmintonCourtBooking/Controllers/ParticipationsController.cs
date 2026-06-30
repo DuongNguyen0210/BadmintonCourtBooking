@@ -9,7 +9,7 @@ namespace BadmintonCourtBooking.Controllers;
 [ApiController]
 [Route("api/participations")]
 public sealed class ParticipationsController(
-    ICancellationService cancellationService,
+    IParticipationCancellationService cancellationService,
     ICurrentUserAccessor currentUserAccessor) : ControllerBase
 {
     [HttpPost("{participantId:guid}/cancel")]

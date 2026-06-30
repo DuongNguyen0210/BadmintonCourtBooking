@@ -43,7 +43,8 @@ builder.Services.AddScoped<IWalletAccountingService, WalletAccountingService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IJoinRequestService, JoinRequestService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<ICancellationService, CancellationService>();
+builder.Services.AddScoped<IParticipationCancellationService, ParticipationCancellationService>();
+builder.Services.AddScoped<IHostPlaySessionCancellationService, HostPlaySessionCancellationService>();
 builder.Services.AddScoped<IPlaySessionAvailabilityService, PlaySessionAvailabilityService>();
 builder.Services.AddScoped<IPlaySessionPostService, PlaySessionPostService>();
 
