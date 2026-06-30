@@ -11,7 +11,8 @@ namespace BadmintonCourtBooking.Services;
 public sealed class JoinRequestService(
     ApplicationDbContext dbContext,
     IClock clock,
-    IOptions<PaymentOptions> paymentOptions) : IJoinRequestService
+    IOptions<PaymentOptions> paymentOptions,
+    IPlaySessionAvailabilityService availabilityService) : IJoinRequestService
 {
     private static readonly JoinRequestStatus[] ActiveRequestStatuses =
     [
@@ -191,7 +192,7 @@ public sealed class JoinRequestService(
         if (await HasActiveParticipationAsync(post.Id, guestUserId, cancellationToken))
             return new ServiceError("ALREADY_PARTICIPANT", "You already joined this session.");
 
-        if (await GetOccupiedSlotsAsync(post, now, cancellationToken) >= post.MaxPlayers)
+        if (await availabilityService.GetOccupiedSlotsAsync(post, now, cancellationToken) >= post.MaxPlayers)
             return new ServiceError("PLAY_SESSION_FULL", "Play session is full.");
 
         return null;
@@ -208,7 +209,7 @@ public sealed class JoinRequestService(
         if (post.StartTime <= now)
             return new ServiceError("PLAY_SESSION_ALREADY_STARTED", "Play session has already started.");
 
-        if (await GetOccupiedSlotsAsync(post, now, cancellationToken) >= post.MaxPlayers)
+        if (await availabilityService.GetOccupiedSlotsAsync(post, now, cancellationToken) >= post.MaxPlayers)
             return new ServiceError("PLAY_SESSION_FULL", "Play session is full.");
 
         return null;
@@ -232,27 +233,6 @@ public sealed class JoinRequestService(
                 participant.UserId == guestUserId &&
                 participant.Status == ParticipantStatus.Active,
             cancellationToken);
-    }
-
-    private async Task<int> GetOccupiedSlotsAsync(
-        PlaySessionPost post,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var activeParticipants = await dbContext.PlaySessionParticipants.CountAsync(
-            participant =>
-                participant.PlaySessionPostId == post.Id &&
-                participant.Status == ParticipantStatus.Active,
-            cancellationToken);
-
-        var heldRequests = await dbContext.PlaySessionJoinRequests.CountAsync(
-            request =>
-                request.PlaySessionPostId == post.Id &&
-                request.Status == JoinRequestStatus.AwaitingPayment &&
-                request.PaymentDueAtUtc > now,
-            cancellationToken);
-
-        return post.CurrentPlayers + activeParticipants + heldRequests;
     }
 
     private Task<PlaySessionJoinRequest?> GetRequestForUpdateAsync(Guid joinRequestId, CancellationToken cancellationToken)

@@ -8,7 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BadmintonCourtBooking.Services;
 
-public sealed class PaymentService(ApplicationDbContext dbContext, IClock clock) : IPaymentService
+public sealed class PaymentService(
+    ApplicationDbContext dbContext,
+    IClock clock,
+    IPlaySessionAvailabilityService availabilityService) : IPaymentService
 {
     public async Task<ServiceResult<ConfirmPaymentResponse>> ConfirmPaymentAsync(
         Guid joinRequestId,
@@ -143,39 +146,16 @@ public sealed class PaymentService(ApplicationDbContext dbContext, IClock clock)
         if (request.PlaySessionPost.StartTime <= now)
             return new ServiceError("PLAY_SESSION_ALREADY_STARTED", "Play session has already started.");
 
-        var occupiedSlotsExcludingThisRequest = await GetOccupiedSlotsExcludingRequestAsync(
+        var occupiedSlotsExcludingThisRequest = await availabilityService.GetOccupiedSlotsAsync(
             request.PlaySessionPost,
-            request.Id,
             now,
-            cancellationToken);
+            cancellationToken,
+            request.Id);
 
         if (occupiedSlotsExcludingThisRequest >= request.PlaySessionPost.MaxPlayers)
             return new ServiceError("PLAY_SESSION_FULL", "Play session is full.");
 
         return null;
-    }
-
-    private async Task<int> GetOccupiedSlotsExcludingRequestAsync(
-        PlaySessionPost post,
-        Guid joinRequestId,
-        DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var activeParticipants = await dbContext.PlaySessionParticipants.CountAsync(
-            participant =>
-                participant.PlaySessionPostId == post.Id &&
-                participant.Status == ParticipantStatus.Active,
-            cancellationToken);
-
-        var heldRequests = await dbContext.PlaySessionJoinRequests.CountAsync(
-            request =>
-                request.PlaySessionPostId == post.Id &&
-                request.Id != joinRequestId &&
-                request.Status == JoinRequestStatus.AwaitingPayment &&
-                request.PaymentDueAtUtc > now,
-            cancellationToken);
-
-        return post.CurrentPlayers + activeParticipants + heldRequests;
     }
 
     private async Task<Wallet> GetOrCreateWalletAsync(string userId, CancellationToken cancellationToken)

@@ -9,7 +9,8 @@ public sealed class PlaySessionAvailabilityService(ApplicationDbContext dbContex
     public async Task<int> GetOccupiedSlotsAsync(
         PlaySessionPost post,
         DateTimeOffset now,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? excludedJoinRequestId = null)
     {
         var activeParticipants = await dbContext.PlaySessionParticipants.CountAsync(
             participant =>
@@ -20,6 +21,7 @@ public sealed class PlaySessionAvailabilityService(ApplicationDbContext dbContex
         var heldJoinRequests = await dbContext.PlaySessionJoinRequests.CountAsync(
             request =>
                 request.PlaySessionPostId == post.Id &&
+                request.Id != excludedJoinRequestId &&
                 request.Status == JoinRequestStatus.AwaitingPayment &&
                 request.PaymentDueAtUtc > now,
             cancellationToken);

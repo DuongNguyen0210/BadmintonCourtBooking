@@ -7,7 +7,8 @@ public interface IPlaySessionAvailabilityService
     Task<int> GetOccupiedSlotsAsync(
         PlaySessionPost post,
         DateTimeOffset now,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        Guid? excludedJoinRequestId = null);
 
     Task<bool> IsVisibleOnFeedAsync(
         PlaySessionPost post,
