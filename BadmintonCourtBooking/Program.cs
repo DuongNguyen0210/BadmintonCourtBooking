@@ -1,4 +1,5 @@
 using BadmintonCourtBooking.Data;
+using BadmintonCourtBooking.Features.PlaySessions;
 using BadmintonCourtBooking.Models;
 using BadmintonCourtBooking.Options;
 using BadmintonCourtBooking.Services;
@@ -43,6 +44,7 @@ builder.Services.AddScoped<IJoinRequestService, JoinRequestService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ICancellationService, CancellationService>();
 builder.Services.AddScoped<IPlaySessionAvailabilityService, PlaySessionAvailabilityService>();
+builder.Services.AddScoped<IPlaySessionPostService, PlaySessionPostService>();
 
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(options =>
