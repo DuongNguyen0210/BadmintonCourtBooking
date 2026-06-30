@@ -11,7 +11,8 @@ public sealed class CancellationService(
     ApplicationDbContext dbContext,
     IClock clock,
     ICancellationPolicy cancellationPolicy,
-    IWalletAccountingService walletAccountingService) : ICancellationService
+    IWalletAccountingService walletAccountingService,
+    INotificationService notificationService) : ICancellationService
 {
     private const string WaiveRefundConfirmationText = "KHONG HOAN TIEN";
 
@@ -86,7 +87,7 @@ public sealed class CancellationService(
         participant.Cancel(now);
         participant.JoinRequest.Cancel(now);
 
-        dbContext.Notifications.Add(Notification.Create(
+        notificationService.Add(
             participant.UserId,
             request.RefundChoice == CancellationRefundChoice.StandardRefund
                 ? NotificationType.RefundCompleted
@@ -96,15 +97,15 @@ public sealed class CancellationService(
                 ? $"Your cancellation was completed. Refund: {quote.RefundAmountVnd} VND."
                 : "Your cancellation was completed without a refund.",
             now,
-            cancellation.Id.ToString()));
+            cancellation.Id.ToString());
 
-        dbContext.Notifications.Add(Notification.Create(
+        notificationService.Add(
             participant.PlaySessionPost.CreatorUserId,
             NotificationType.ParticipantCancelled,
             "Participant cancelled",
             $"{participant.UserId} cancelled participation in {participant.PlaySessionPost.Title}.",
             now,
-            cancellation.Id.ToString()));
+            cancellation.Id.ToString());
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -168,13 +169,13 @@ public sealed class CancellationService(
             participant.Cancel(now);
             participant.JoinRequest.Cancel(now);
 
-            dbContext.Notifications.Add(Notification.Create(
+            notificationService.Add(
                 participant.UserId,
                 NotificationType.HostCancelledSession,
                 "Play session cancelled",
                 $"Host cancelled {post.Title}. Your payment was fully refunded.",
                 now,
-                playSessionPostId.ToString()));
+                playSessionPostId.ToString());
         }
 
         var pendingRequests = await dbContext.PlaySessionJoinRequests

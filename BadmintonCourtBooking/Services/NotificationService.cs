@@ -7,6 +7,23 @@ namespace BadmintonCourtBooking.Services;
 
 public sealed class NotificationService(ApplicationDbContext dbContext, IClock clock) : INotificationService
 {
+    public void Add(
+        string recipientUserId,
+        NotificationType type,
+        string title,
+        string message,
+        DateTimeOffset now,
+        string? relatedEntityId)
+    {
+        dbContext.Notifications.Add(Notification.Create(
+            recipientUserId,
+            type,
+            title,
+            message,
+            now,
+            relatedEntityId));
+    }
+
     public async Task CreateAsync(
         string recipientUserId,
         NotificationType type,
@@ -15,13 +32,13 @@ public sealed class NotificationService(ApplicationDbContext dbContext, IClock c
         string? relatedEntityId,
         CancellationToken cancellationToken)
     {
-        dbContext.Notifications.Add(Notification.Create(
+        Add(
             recipientUserId,
             type,
             title,
             message,
             clock.UtcNow,
-            relatedEntityId));
+            relatedEntityId);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }

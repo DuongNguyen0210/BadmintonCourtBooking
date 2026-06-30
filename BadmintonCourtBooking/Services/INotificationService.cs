@@ -5,6 +5,14 @@ namespace BadmintonCourtBooking.Services;
 
 public interface INotificationService
 {
+    void Add(
+        string recipientUserId,
+        NotificationType type,
+        string title,
+        string message,
+        DateTimeOffset now,
+        string? relatedEntityId);
+
     Task CreateAsync(
         string recipientUserId,
         NotificationType type,

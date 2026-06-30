@@ -12,7 +12,8 @@ public sealed class JoinRequestService(
     ApplicationDbContext dbContext,
     IClock clock,
     IOptions<PaymentOptions> paymentOptions,
-    IPlaySessionAvailabilityService availabilityService) : IJoinRequestService
+    IPlaySessionAvailabilityService availabilityService,
+    INotificationService notificationService) : IJoinRequestService
 {
     private static readonly JoinRequestStatus[] ActiveRequestStatuses =
     [
@@ -40,13 +41,13 @@ public sealed class JoinRequestService(
 
         var joinRequest = PlaySessionJoinRequest.Create(playSessionPostId, guestUserId, now);
         dbContext.PlaySessionJoinRequests.Add(joinRequest);
-        dbContext.Notifications.Add(Notification.Create(
+        notificationService.Add(
             post.CreatorUserId,
             NotificationType.JoinRequested,
             "New join request",
             $"{guestUserId} requested to join {post.Title}.",
             now,
-            joinRequest.Id.ToString()));
+            joinRequest.Id.ToString());
 
         try
         {
@@ -121,13 +122,13 @@ public sealed class JoinRequestService(
             return ServiceResult<JoinRequestResponse>.Failure(exception.Code, exception.Message);
         }
 
-        dbContext.Notifications.Add(Notification.Create(
+        notificationService.Add(
             request.GuestUserId,
             NotificationType.PaymentRequired,
             "Payment required",
             $"Your request for {request.PlaySessionPost.Title} was approved. Please pay before the deadline.",
             now,
-            request.Id.ToString()));
+            request.Id.ToString());
 
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -158,13 +159,13 @@ public sealed class JoinRequestService(
             return ServiceResult<JoinRequestResponse>.Failure(exception.Code, exception.Message);
         }
 
-        dbContext.Notifications.Add(Notification.Create(
+        notificationService.Add(
             request.GuestUserId,
             NotificationType.JoinRejected,
             "Join request rejected",
             $"Your request for {request.PlaySessionPost.Title} was rejected.",
             now,
-            request.Id.ToString()));
+            request.Id.ToString());
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

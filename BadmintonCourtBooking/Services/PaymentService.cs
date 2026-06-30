@@ -12,7 +12,8 @@ public sealed class PaymentService(
     ApplicationDbContext dbContext,
     IClock clock,
     IPlaySessionAvailabilityService availabilityService,
-    IWalletAccountingService walletAccountingService) : IPaymentService
+    IWalletAccountingService walletAccountingService,
+    INotificationService notificationService) : IPaymentService
 {
     public async Task<ServiceResult<ConfirmPaymentResponse>> ConfirmPaymentAsync(
         Guid joinRequestId,
@@ -85,21 +86,21 @@ public sealed class PaymentService(
             $"Escrow hold for {request.PlaySessionPost.Title}",
             $"confirm-payment:{request.Id}");
 
-        dbContext.Notifications.Add(Notification.Create(
+        notificationService.Add(
             userId,
             NotificationType.PaymentCompleted,
             "Payment completed",
             $"You joined {request.PlaySessionPost.Title}.",
             now,
-            request.Id.ToString()));
+            request.Id.ToString());
 
-        dbContext.Notifications.Add(Notification.Create(
+        notificationService.Add(
             request.PlaySessionPost.CreatorUserId,
             NotificationType.ParticipantJoined,
             "Participant joined",
             $"{request.GuestUser.FullName} paid and joined {request.PlaySessionPost.Title}.",
             now,
-            request.Id.ToString()));
+            request.Id.ToString());
 
         try
         {
